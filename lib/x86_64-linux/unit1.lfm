@@ -1,0 +1,80 @@
+object Form1: TForm1
+  Left = 241
+  Height = 406
+  Top = 167
+  Width = 559
+  Caption = 'Monitor Serial'
+  ClientHeight = 406
+  ClientWidth = 559
+  OnCreate = FormCreate
+  LCLVersion = '1.8.0.6'
+  object MemoDadosRecebidos: TMemo
+    Left = 0
+    Height = 316
+    Top = 48
+    Width = 559
+    Align = alClient
+    Lines.Strings = (
+      'MemoDadosRecebidos'
+    )
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 48
+    Top = 0
+    Width = 559
+    Align = alTop
+    ClientHeight = 48
+    ClientWidth = 559
+    TabOrder = 1
+    object EditEnviar: TEdit
+      Left = 8
+      Height = 37
+      Top = 8
+      Width = 448
+      TabOrder = 0
+      Text = 'EditEnviar'
+    end
+    object Button1: TButton
+      Left = 464
+      Height = 25
+      Top = 8
+      Width = 75
+      Caption = 'Button1'
+      OnClick = Button1Click
+      TabOrder = 1
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 42
+    Top = 364
+    Width = 559
+    Align = alBottom
+    ClientHeight = 42
+    ClientWidth = 559
+    TabOrder = 2
+    object ComboBoxPort: TComboBox
+      Left = 415
+      Height = 36
+      Top = 3
+      Width = 140
+      Anchors = [akRight, akBottom]
+      ItemHeight = 0
+      OnChange = ComboBoxPortChange
+      OnClick = ComboBoxPortChange
+      Style = csDropDownList
+      TabOrder = 0
+    end
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 50
+    OnTimer = Timer1Timer
+    left = 104
+    top = 248
+  end
+end
