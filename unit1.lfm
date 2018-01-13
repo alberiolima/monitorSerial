@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 241
+  Left = 338
   Height = 406
-  Top = 167
+  Top = 205
   Width = 559
   Caption = 'Monitor Serial'
   ClientHeight = 406
@@ -69,12 +69,5 @@ object Form1: TForm1
       Style = csDropDownList
       TabOrder = 0
     end
-  end
-  object Timer1: TTimer
-    Enabled = False
-    Interval = 50
-    OnTimer = Timer1Timer
-    left = 104
-    top = 248
   end
 end

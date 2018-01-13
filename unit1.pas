@@ -12,6 +12,18 @@ type
 
   { TForm1 }
 
+  { th }
+
+  th = class(TThread)
+    public
+      constructor create( createsuspended:boolean );
+      procedure AtualizaDados;
+
+    protected
+      procedure execute; override;
+
+  end;
+
   TForm1 = class(TForm)
     Button1: TButton;
     ComboBoxPort: TComboBox;
@@ -19,12 +31,10 @@ type
     MemoDadosRecebidos: TMemo;
     Panel1: TPanel;
     Panel2: TPanel;
-    Timer1: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure ComboBoxPortChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EncontraPostas( sPath: String );
-    procedure Timer1Timer(Sender: TObject);
   private
 
   public
@@ -36,10 +46,38 @@ var
   serialHandle: LongInt;
   Flags: TSerialFlags; { TSerialFlags = set of (RtsCtsFlowControl); }
   status: LongInt;
+  myThread:th;
 
 implementation
 
 {$R *.lfm}
+
+{ th }
+
+constructor th.create(createsuspended: boolean);
+begin
+  FreeOnTerminate := True;
+  inherited create(createsuspended);
+end;
+
+procedure th.AtualizaDados;
+var
+  s :String[10];
+begin
+    s:='';
+    status := SerRead( serialHandle, s[1], 1);
+    //if (s[1]=#13) then status:=-1; { CR => end serial read }
+    if (status>0) then Form1.MemoDadosRecebidos.Lines[Form1.MemoDadosRecebidos.Lines.Count-1]:= Form1.MemoDadosRecebidos.Lines[Form1.MemoDadosRecebidos.Lines.Count-1] + s[1];
+end;
+
+procedure th.execute;
+
+begin
+  while (true) do
+  begin
+    Synchronize(@AtualizaDados);
+  end;
+end;
 
 { TForm1 }
 
@@ -68,7 +106,8 @@ begin
      SerFlushOutput(serialHandle);
      Flags := [ ]; // None
      SerSetParams(serialHandle,9600,8,NoneParity,1,Flags);
-     Timer1.Enabled := true;
+     //Timer1.Enabled := true;
+     myThread.Start;
   end
   else
   begin
@@ -78,8 +117,9 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
-
 begin
+  myThread := th.create(true);
+
   ComboBoxPort.Items.Clear();
    ComboBoxPort.Items.Add('A');
   EncontraPostas( 'ttyUSB*' );
@@ -101,15 +141,6 @@ begin
     FindClose (SearchResult);
 end;
 
-procedure TForm1.Timer1Timer(Sender: TObject);
-var
-  s:String[1];
-begin
-  s := '';
-  status := SerRead( serialHandle, s[1], 1);
-  //if (s[1]=#13) then status:=-1; { CR => end serial read }
-  if (status>0) then MemoDadosRecebidos.Lines[MemoDadosRecebidos.Lines.Count-1]:= MemoDadosRecebidos.Lines[MemoDadosRecebidos.Lines.Count-1] + s[1];
-end;
 
 end.
 
