@@ -10,10 +10,7 @@ uses
 
 type
 
-  { TForm1 }
-
   { th }
-
   th = class(TThread)
     public
       constructor create( createsuspended:boolean );
@@ -24,6 +21,7 @@ type
 
   end;
 
+  { TForm1 }
   TForm1 = class(TForm)
     Button1: TButton;
     ComboBoxPort: TComboBox;
@@ -35,7 +33,6 @@ type
     procedure ComboBoxPortChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EncontraPostas( sPath: String );
-    procedure Timer1Timer(Sender: TObject);
   private
 
   public
@@ -63,12 +60,16 @@ end;
 
 procedure th.AtualizaDados;
 var
-  s :String[10];
+  s: Char;
 begin
-    s:='';
-    status := SerRead( serialHandle, s[1], 1);
-    //if (s[1]=#13) then status:=-1; { CR => end serial read }
-    if (status>0) then Form1.MemoDadosRecebidos.Lines[Form1.MemoDadosRecebidos.Lines.Count-1]:= Form1.MemoDadosRecebidos.Lines[Form1.MemoDadosRecebidos.Lines.Count-1] + s[1];
+    status := SerRead( serialHandle, s, 1);
+    if (status>0) then
+    begin
+       if s = #13 then
+         Form1.MemoDadosRecebidos.Lines.Add('')
+       else
+         Form1.MemoDadosRecebidos.Lines[Form1.MemoDadosRecebidos.Lines.Count-1]:= Form1.MemoDadosRecebidos.Lines[Form1.MemoDadosRecebidos.Lines.Count-1] + s;
+    end;
 end;
 
 procedure th.execute;
@@ -100,13 +101,17 @@ begin
        SerFlushOutput(serialHandle);
        SerClose(serialHandle);
   end;
-  serialHandle := SerOpen('/dev/'+ComboBoxPort.Text);
+  {$IF defined(Windows)}
+    serialHandle := SerOpen( ComboBoxPort.Text );
+  {$ELSE}
+    serialHandle := SerOpen('/dev/'+ComboBoxPort.Text);
+  {$ENDIF}
   if ( serialHandle > 0 )then
   begin
-     SerSync(serialHandle);
-     SerFlushOutput(serialHandle);
      Flags := [ ]; // None
      SerSetParams(serialHandle,9600,8,NoneParity,1,Flags);
+     //SerSync(serialHandle);
+     //SerFlushOutput(serialHandle);
      //Timer1.Enabled := true;
      myThread.Start;
   end
@@ -118,14 +123,22 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  i:integer;
 begin
   myThread := th.create(true);
-
   ComboBoxPort.Items.Clear();
-   ComboBoxPort.Items.Add('A');
-  EncontraPostas( 'ttyUSB*' );
-  EncontraPostas( 'ttyACM*' );
-  //EncontraPostas( 'ttyS*' );
+  {$IF defined(Windows)}
+    for  i := 1 to 99 do
+    begin
+      if FileExists( 'COM' + IntToStr(i) + ':' ) then
+        ComboBoxPort.Items.Add( 'COM' + IntToStr(i) + ':'  );
+    end;
+  {$ELSE}
+    EncontraPostas( 'ttyUSB*' );
+    EncontraPostas( 'ttyACM*' );
+    //EncontraPostas( 'ttyS*' );
+  {$ENDIF}
   ComboBoxPort.ItemIndex := 0;
 end;
 
